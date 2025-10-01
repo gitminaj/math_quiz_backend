@@ -49,16 +49,16 @@ const playerSchema = new mongoose.Schema({
       hard:   { type: Number, default: 1000 },
     }
   },
-  friends:[{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Player",
-    required: false
-  }],
-  friendRequest:[{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Player",
-    required: false
-  }]
+  // friends:[{
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Player",
+  //   required: false
+  // }],
+  // friendRequest:[{
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Player",
+  //   required: false
+  // }]
 }, { timestamps: true });
 
 

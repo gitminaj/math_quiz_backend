@@ -52,6 +52,7 @@ exports.sendVerificationMail = async (req, res, next) => {
     res.status(200).json({
       message: "OTP sent",
       success: true,
+      otp //delet later
     });
   } catch (err) {
     console.log(err);

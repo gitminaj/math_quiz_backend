@@ -1,4 +1,4 @@
-const { loadQuestionsFromExcel } = require("../loadQuestion");
+const {  getQuestions } = require("../loadQuestion");
 
 /**
  * Determine the appropriate question level based on player rating and difficulty
@@ -113,7 +113,8 @@ exports.getQuestion = (req, res) => {
   }
 
   try {
-    const allQs = loadQuestionsFromExcel();
+    // const allQs = loadQuestionsFromExcel();
+    const allQs = getQuestions();
     console.log(`Total questions loaded: ${allQs.length}`);
 
     // Determine the appropriate final level using QM or player rating
@@ -304,7 +305,7 @@ exports.submitAnswer = (req, res) => {
   }
 
   try {
-    const allQs = loadQuestionsFromExcel();
+    const allQs = getQuestions();
 
     // Determine appropriate final level for next question using QM or rating
     const nextFinalLevel = determineFinalQuestionLevel(
@@ -403,7 +404,7 @@ exports.getLevelFromScore = (score) => {
 function preloadQuestions() {
   console.log("[Startup] Preloading questions from Excel...");
   try {
-    const data = loadQuestionsFromExcel();
+    const data = getQuestions();
     console.log(`[Startup] Preloaded ${data.length} questions`);
 
     // Log some statistics

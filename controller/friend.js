@@ -172,7 +172,7 @@ exports.userList = async (req, res) => {
   const { searchText } = req.body;
 
   try {
-    // Step 1: Find all friend relationships where user is involved
+    //  Find all friend relationships where user is involved
     const friendships = await Friend.find({
       $or: [
         { requester: _id, status: "accepted" },
@@ -180,12 +180,12 @@ exports.userList = async (req, res) => {
       ],
     });
 
-    // Step 2: Collect friend IDs
+    // Collect friend IDs
     const friendIds = friendships.map(f =>
       f.requester.toString() === _id.toString() ? f.recipient : f.requester
     );
 
-    // Step 3: Build query for users
+    //  Build query for users
     const query = {
       _id: { $nin: [...friendIds, _id] }, // exclude self & friends
     };
@@ -194,7 +194,7 @@ exports.userList = async (req, res) => {
       query.username = { $regex: searchText, $options: "i" }; // case-insensitive match
     }
 
-    // Step 4: Fetch users
+    //  Fetch users
     const users = await Player.find(query).select("username email gender country");
 
     if (!users || users.length === 0) {

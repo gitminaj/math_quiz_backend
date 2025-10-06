@@ -15,7 +15,7 @@ module.exports = async (req, res, next) => {
     // Attach player to request
     const player = await Player.findById(payload.id).select('-password');
     if (!player) {
-      return res.status(401).json({ message: 'Player not found' });
+      return res.status(401).json({ message: 'unauthorised' });
     }
     req.user = player;
     next();

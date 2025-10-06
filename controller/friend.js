@@ -166,11 +166,11 @@ exports.rejectFrndRequest = async (req, res) => {
 };
 
 
-
-exports.userList = async (req, res) => {
-  const { _id } = req.user; // logged-in user ID
+exports.searchUser = async (req, res) => {
+  const { _id } = req.user; 
   const { searchText } = req.body;
 
+ console.error("sertxt:", searchText);
   try {
     //  Find all friend relationships where user is involved
     const friendships = await Friend.find({
@@ -180,10 +180,14 @@ exports.userList = async (req, res) => {
       ],
     });
 
+    
     // Collect friend IDs
     const friendIds = friendships.map(f =>
       f.requester.toString() === _id.toString() ? f.recipient : f.requester
     );
+    
+    
+    console.error("frndid:", friendIds);
 
     //  Build query for users
     const query = {
@@ -196,6 +200,9 @@ exports.userList = async (req, res) => {
 
     //  Fetch users
     const users = await Player.find(query).select("username email gender country");
+
+    console.error("users:", users);
+    
 
     if (!users || users.length === 0) {
       return res.status(404).json({
@@ -216,4 +223,26 @@ exports.userList = async (req, res) => {
     });
   }
 };
+
+
+exports.userList = async (req, res) => {
+  const { _id } = req.user;
+
+  try {
+    const users = await Player.find({ _id: { $ne: _id } }) 
+      .select("username email gender country");
+
+    return res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 

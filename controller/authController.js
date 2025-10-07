@@ -294,7 +294,6 @@ exports.changePass = async (req, res) => {
 };
 
 exports.allUserList = async (req, res) => {
-  const { _id } = req.user;
 
   try {
     const users = await Player.find({ }) 

@@ -245,4 +245,36 @@ exports.userList = async (req, res) => {
   }
 };
 
+exports.friendRequestList = async (req, res) => {
+  const { _id } = req.user; 
+
+  try {
+    const requests = await Friend.find({
+      recipient: _id,
+      status: "pending",
+    })
+      .populate("requester", "username email gender country") // show who sent it
+      .sort({ createdAt: -1 }); // newest first
+
+    if (!requests || requests.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No friend requests received",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      total: requests.length,
+      requests,
+    });
+  } catch (error) {
+    console.error("Error fetching friend requests:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 

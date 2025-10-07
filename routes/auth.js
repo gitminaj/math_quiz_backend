@@ -8,4 +8,8 @@ router.post('/signup', authController.signup)
 router.post('/sendForgotPassOtp', authController.sendForgotPasswordOtp);
 router.post('/changePass', authController.changePass);
 
+router.get('/allUser', authController.allUserList);
+
+
+
 module.exports = router;

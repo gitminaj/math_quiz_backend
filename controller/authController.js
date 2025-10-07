@@ -292,3 +292,23 @@ exports.changePass = async (req, res) => {
      res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
+exports.allUserList = async (req, res) => {
+  const { _id } = req.user;
+
+  try {
+    const users = await Player.find({ }) 
+      .select("username email gender country");
+
+    return res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};

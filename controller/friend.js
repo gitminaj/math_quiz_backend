@@ -6,6 +6,13 @@ exports.addFriend = async (req, res) => {
     //   const { _id:userId, friends, friendRequest  } = req.user
     const { requester, recipient, status = "pending" } = req.body;
 
+    if(!requester || !recipient){
+        return res.status(404).json({
+        success: false,
+        message: "requester or recipient is missing",
+      });
+    }
+
     console.log("req user", req.user);
 
     if (requester == recipient) {
@@ -226,15 +233,42 @@ exports.searchUser = async (req, res) => {
 
 
 exports.userList = async (req, res) => {
-  const { _id } = req.user;
+  const { _id } = req.user; 
 
   try {
-    const users = await Player.find({ _id: { $ne: _id } }) 
-      .select("username email gender country");
+    // Fetch all users except current one
+    const query = { _id: { $ne: _id } };
+
+
+    const users = await Player.find(query).select("username email gender country");
+
+    // Get all friendship relationships involving this user
+    const friendships = await Friend.find({
+      $or: [{ requester: _id }, { recipient: _id }],
+    });
+
+    // Create a map for quick lookup
+    const friendshipMap = {};
+    friendships.forEach((f) => {
+      const otherUserId =
+        f.requester.toString() === _id.toString()
+          ? f.recipient.toString()
+          : f.requester.toString();
+      friendshipMap[otherUserId] = f.status; // "pending" | "accepted" | "rejected" | "blocked"
+    });
+
+    // Attach friendship status to each user
+    const userList = users.map((user) => {
+      const status = friendshipMap[user._id.toString()] || "none";
+      return {
+        ...user.toObject(),
+        friendshipStatus: status,
+      };
+    });
 
     return res.status(200).json({
       success: true,
-      users,
+      users: userList,
     });
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -253,7 +287,7 @@ exports.friendRequestList = async (req, res) => {
       recipient: _id,
       status: "pending",
     })
-      .populate("requester", "username email gender country") // show who sent it
+      .populate("requester", "username email gender country") 
       .sort({ createdAt: -1 }); // newest first
 
     if (!requests || requests.length === 0) {
@@ -276,5 +310,48 @@ exports.friendRequestList = async (req, res) => {
     });
   }
 };
+
+exports.deleteFriendship = async (req, res) => {
+  const { _id } = req.user; // logged-in user
+  const { friendshipId } = req.params; // friendship _id from route params
+
+  try {
+    //: Find the friendship by ID
+    const friendship = await Friend.findById(friendshipId);
+
+    if (!friendship) {
+      return res.status(404).json({
+        success: false,
+        message: "Friendship not found",
+      });
+    }
+
+    //  Ensure the logged-in user is part of the friendship - in future
+    // if (
+    //   friendship.requester.toString() !== _id.toString() &&
+    //   friendship.recipient.toString() !== _id.toString()
+    // ) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "You are not authorized to delete this friendship",
+    //   });
+    // }
+
+    // Step 3: Delete the record
+    await friendship.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: "Friendship deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting friendship:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 
 

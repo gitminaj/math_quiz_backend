@@ -49,6 +49,11 @@ const playerSchema = new mongoose.Schema({
       hard:   { type: Number, default: 1000 },
     }
   },
+  // firebase message token
+    fcmToken:{
+      type: String,
+      required: false
+    }
   // friends:[{
   //   type: mongoose.Schema.Types.ObjectId,
   //   ref: "Player",

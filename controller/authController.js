@@ -311,3 +311,30 @@ exports.allUserList = async (req, res) => {
     });
   }
 };
+
+exports.saveFcmToken = async(req, res) =>{
+  try {
+    const {fcmToken} = req.body;
+    const { _id } = req.user;
+    
+    if(!fcmToken){
+      return res.status(404).json({
+        success: false,
+        message: "fcm token not found",
+      });
+    }
+
+    const response = await Player.findByIdAndUpdate(_id, {fcmToken});
+
+    return res.status(201).json({
+      success: true,
+      message: "fcm token added"
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+}

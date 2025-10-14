@@ -3,7 +3,6 @@ node_modules/
 
 # dotenv environment files
 .env
-.env.*
 
 # Logs
 logs
@@ -23,4 +22,7 @@ Thumbs.db
 # Build output
 dist/
 build/
+
+Mathletics_Architecture_Document.pdf
+firebase-service-account.json
 

@@ -1,19 +1,20 @@
 const Friend = require("../models/Friend");
 const Player = require("../models/Player");
+const admin = require("../config/firebase");
 
 exports.addFriend = async (req, res) => {
   try {
     //   const { _id:userId, friends, friendRequest  } = req.user
     const { requester, recipient, status = "pending" } = req.body;
 
-    if(!requester || !recipient){
-        return res.status(404).json({
+    if (!requester || !recipient) {
+      return res.status(404).json({
         success: false,
         message: "requester or recipient is missing",
       });
     }
 
-    console.log("req user", req.user);
+    // console.log("req user", req.user);
 
     if (requester == recipient) {
       return res.status(400).json({
@@ -72,6 +73,31 @@ exports.addFriend = async (req, res) => {
       recipient,
       status: "pending",
     });
+
+    const receiver = await Player.findById(recipient);
+    const sender = await Player.findById(requester);
+
+    console.log("receiver sender", receiver, sender);
+
+    if (receiver?.fcmToken) {
+      const payload = {
+        token: receiver.fcmToken,
+        notification: {
+          title: "New Friend Request 🎉",
+          body: `${sender.name} sent you a friend request.`,
+        },
+        data: {
+          type: "FRIEND_REQUEST",
+          requester,
+          recipient,
+        },
+      };
+
+      const notificationres = await admin.messaging().send( payload);
+      console.log("Notification sent successfully", notificationres);
+    } else {
+      console.log("Receiver has no FCM token");
+    }
 
     return res.status(200).json({
       success: true,
@@ -172,12 +198,11 @@ exports.rejectFrndRequest = async (req, res) => {
   }
 };
 
-
 exports.searchUser = async (req, res) => {
-  const { _id } = req.user; 
+  const { _id } = req.user;
   const { searchText } = req.body;
 
- console.error("sertxt:", searchText);
+  console.error("sertxt:", searchText);
   try {
     //  Find all friend relationships where user is involved
     const friendships = await Friend.find({
@@ -187,13 +212,11 @@ exports.searchUser = async (req, res) => {
       ],
     });
 
-    
     // Collect friend IDs
-    const friendIds = friendships.map(f =>
+    const friendIds = friendships.map((f) =>
       f.requester.toString() === _id.toString() ? f.recipient : f.requester
     );
-    
-    
+
     console.error("frndid:", friendIds);
 
     //  Build query for users
@@ -206,10 +229,11 @@ exports.searchUser = async (req, res) => {
     }
 
     //  Fetch users
-    const users = await Player.find(query).select("username email gender country");
+    const users = await Player.find(query).select(
+      "username email gender country"
+    );
 
     console.error("users:", users);
-    
 
     if (!users || users.length === 0) {
       return res.status(404).json({
@@ -231,16 +255,16 @@ exports.searchUser = async (req, res) => {
   }
 };
 
-
 exports.userList = async (req, res) => {
-  const { _id } = req.user; 
+  const { _id } = req.user;
 
   try {
     // Fetch all users except current one
     const query = { _id: { $ne: _id } };
 
-
-    const users = await Player.find(query).select("username email gender country");
+    const users = await Player.find(query).select(
+      "username email gender country"
+    );
 
     // Get all friendship relationships involving this user
     const friendships = await Friend.find({
@@ -280,14 +304,14 @@ exports.userList = async (req, res) => {
 };
 
 exports.friendRequestList = async (req, res) => {
-  const { _id } = req.user; 
+  const { _id } = req.user;
 
   try {
     const requests = await Friend.find({
       recipient: _id,
       status: "pending",
     })
-      .populate("requester", "username email gender country") 
+      .populate("requester", "username email gender country")
       .sort({ createdAt: -1 }); // newest first
 
     if (!requests || requests.length === 0) {
@@ -352,6 +376,3 @@ exports.deleteFriendship = async (req, res) => {
     });
   }
 };
-
-
-

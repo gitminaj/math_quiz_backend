@@ -435,3 +435,21 @@ exports.deleteFriendship = async (req, res) => {
     });
   }
 };
+
+exports.deleteAllFriendship = async (req, res) => {
+  try {
+   
+    await Friend.deleteMany({});
+
+    return res.status(200).json({
+      success: true,
+      message: "Friendship deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting friendship:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};

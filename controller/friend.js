@@ -84,7 +84,7 @@ exports.addFriend = async (req, res) => {
         token: receiver.fcmToken,
         notification: {
           title: "New Friend Request 🎉",
-          body: `${sender.name} sent you a friend request.`,
+          body: `${sender.username} sent you a friend request.`,
         },
         data: {
           type: "FRIEND_REQUEST",
@@ -93,7 +93,7 @@ exports.addFriend = async (req, res) => {
         },
       };
 
-      const notificationres = await admin.messaging().send( payload);
+      const notificationres = await admin.messaging().send(payload);
       console.log("Notification sent successfully", notificationres);
     } else {
       console.log("Receiver has no FCM token");
@@ -145,7 +145,37 @@ exports.acceptFrndRequest = async (req, res) => {
       { new: true }
     );
 
+    const receiver = await Player.findById(recipient);
+    const sender = await Player.findById(requester);
+
+    console.log("receiver sender", receiver, sender);
+
+    if (receiver?.fcmToken) {
+      const payload = {
+        token: sender.fcmToken,
+        notification: {
+          title: "Friend Request Accepted 🎉",
+          body: `${receiver.username} accepted your friend request.`,
+        },
+        data: {
+          type: "FRIEND_REQUEST_ACCEPT",
+          requester,
+          recipient,
+        },
+      };
+
+      const notificationres = await admin.messaging().send(payload);
+      console.log("Notification sent successfully", notificationres);
+    } else {
+      console.log("Receiver has no FCM token");
+    }
+
     console.log("response", response);
+
+    return res.status(201).json({
+      success: true,
+      message: "friend request accepted",
+    });
   } catch (error) {
     console.log("error:", error);
     return res.status(500).json({
@@ -188,7 +218,36 @@ exports.rejectFrndRequest = async (req, res) => {
       { new: true }
     );
 
+    const receiver = await Player.findById(recipient);
+    const sender = await Player.findById(requester);
+
+    console.log("receiver sender", receiver, sender);
+
+    if (receiver?.fcmToken) {
+      const payload = {
+        token: sender.fcmToken,
+        notification: {
+          title: "Friend Request rejected 😞",
+          body: `${receiver.username} rejected your friend request.`,
+        },
+        data: {
+          type: "FRIEND_REQUEST_REJECT",
+          requester,
+          recipient,
+        },
+      };
+
+      const notificationres = await admin.messaging().send(payload);
+      console.log("Notification sent successfully", notificationres);
+    } else {
+      console.log("Receiver has no FCM token");
+    }
+
     console.log("response", response);
+    return res.status(201).json({
+      success: true,
+      message: "friend request rejected",
+    });
   } catch (error) {
     console.log("error:", error);
     return res.status(500).json({
@@ -314,12 +373,12 @@ exports.friendRequestList = async (req, res) => {
       .populate("requester", "username email gender country")
       .sort({ createdAt: -1 }); // newest first
 
-    if (!requests || requests.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No friend requests received",
-      });
-    }
+    // if (!requests || requests.length === 0) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "No friend requests received",
+    //   });
+    // }
 
     return res.status(200).json({
       success: true,

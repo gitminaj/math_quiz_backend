@@ -883,18 +883,19 @@ class GameRoom {
 
   addFinalResult(playerId, result) {
   this.finalResults.set(playerId, result);
+console.log('add final')
+// If both results received → determine winner
+if (this.finalResults.size === this.players.length) {
+  return this.determineWinner();
+}
 
-  // If both results received → determine winner
-  if (this.finalResults.size === this.players.length) {
-    return this.determineWinner();
-  }
-
-  return null;
+return null;
 }
 
 determineWinner() {
   const results = [...this.finalResults.entries()]; // [ [playerId, {score,time}], ... ]
-
+  
+  console.log('determine winner')
   results.sort((a, b) => {
     const r1 = a[1];
     const r2 = b[1];

@@ -181,15 +181,18 @@ socket.on("submit-answer", (data) => {
 
     const gameRoom = gameRoomManager.getPlayerGameRoom(player.id);
     if (!gameRoom) throw new Error("Game room not found");
+console.log('1')
+// Save frontend result
+const finalOutcome = gameRoom.addFinalResult(player.id, data);
+console.log('2', finalOutcome )
 
-    // Save frontend result
-    const finalOutcome = gameRoom.addFinalResult(player.id, data);
-
-    // If winner is decided → broadcast
-    if (finalOutcome) {
+// If winner is decided → broadcast
+if (finalOutcome) {
+      console.log('3')
       gameRoom.players.forEach((p) => {
         io.to(p.socketId).emit("game-winner", finalOutcome);
       });
+      console.log('4')
     }
 
   } catch (err) {

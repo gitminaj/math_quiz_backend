@@ -490,6 +490,10 @@ class GameRoom {
     this.createdAt = Date.now();
     this.gameState = "waiting"; // waiting, active, completed
 
+
+    this.finalResults = new Map(); // playerId -> { score, correct, time }
+
+
     // Track each player's progress index
     this.playerProgress = new Map(players.map((p) => [p.id, 0]));
 
@@ -876,6 +880,37 @@ class GameRoom {
 
     return changes;
   }
+
+  addFinalResult(playerId, result) {
+  this.finalResults.set(playerId, result);
+
+  // If both results received → determine winner
+  if (this.finalResults.size === this.players.length) {
+    return this.determineWinner();
+  }
+
+  return null;
+}
+
+determineWinner() {
+  const results = [...this.finalResults.entries()]; // [ [playerId, {score,time}], ... ]
+
+  results.sort((a, b) => {
+    const r1 = a[1];
+    const r2 = b[1];
+
+    if (r2.score !== r1.score) return r2.score - r1.score;  // higher score wins
+    return r1.time - r2.time;  // lower time wins
+  });
+
+  const winnerPlayerId = results[0][0];
+
+  return {
+    winnerId: winnerPlayerId,
+    results: Object.fromEntries(this.finalResults),
+  };
+}
+
 
   getGameState() {
     return {

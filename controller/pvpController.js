@@ -155,42 +155,48 @@ module.exports = function registerSocketHandlers(io) {
     //   }
     // });
 
-    socket.on("submit-answer", (data) => {
-     
-      try {
-         console.log(data)
-        // const player = playerManager.getPlayer(data.userName);
-        const player = playerManager.getPlayer(socket.id);
-        console.log('submit answer',player, socket.id)
-        if (!player) throw new Error("Player not found");
-        
-        const gameRoom = gameRoomManager.getPlayerGameRoom(player.id);
-        if (!gameRoom) throw new Error("Game room not found");
-        console.log("submit answer game room:", gameRoom)
+socket.on("submit-answer", (data) => {
+  try {
+    const player = playerManager.getPlayer(socket.id);
+    if (!player) throw new Error("Player not found");
 
-        // 1) Record the answer and QM changes
-        const result = gameRoom.submitAnswer(
+    const gameRoom = gameRoomManager.getPlayerGameRoom(player.id);
+    if (!gameRoom) throw new Error("Game room not found");
 
-          player.id,
-          data.answer,
-          data.timeSpent
-        );
+    console.log('emiting next ques')
+    // Only emit next question
+    gameRoom.emitNextQuestion(player.id);
+    console.log('emited next ques')
 
-        // 2) Broadcast “answer-submitted” to both players
-        // gameRoom.getPlayers().forEach((p) => {
-        //   io.to(p.socketId).emit("answer-submitted", {
-        //     playerId: player.id,
-        //     result,
-        //     gameState: gameRoom.getGameState(),
-        //   });
-        // });
+  } catch (err) {
+    socket.emit("error", { message: err.message });
+  }
+});
 
-        // 3) Immediately generate and send the next question for the answerer
-        gameRoom.emitNextQuestion(player.id);
-      } catch (err) {
-        socket.emit("error", { message: err.message });
-      }
-    });
+
+    socket.on("game-completed", (data) => {
+  try {
+    const player = playerManager.getPlayer(socket.id);
+    if (!player) throw new Error("Player not found");
+
+    const gameRoom = gameRoomManager.getPlayerGameRoom(player.id);
+    if (!gameRoom) throw new Error("Game room not found");
+
+    // Save frontend result
+    const finalOutcome = gameRoom.addFinalResult(player.id, data);
+
+    // If winner is decided → broadcast
+    if (finalOutcome) {
+      gameRoom.players.forEach((p) => {
+        io.to(p.socketId).emit("game-winner", finalOutcome);
+      });
+    }
+
+  } catch (err) {
+    socket.emit("error", { message: err.message });
+  }
+});
+
 
     // Player requests current game state
     socket.on("get-game-state", () => {

@@ -182,6 +182,7 @@ socket.on("submit-answer", (data) => {
     const gameRoom = gameRoomManager.getPlayerGameRoom(player.id);
     if (!gameRoom) throw new Error("Game room not found");
 console.log('1')
+console.log('player, data', player.id, data )
 // Save frontend result
 const finalOutcome = gameRoom.addFinalResult(player.id, data);
 console.log('2', finalOutcome )

@@ -490,9 +490,7 @@ class GameRoom {
     this.createdAt = Date.now();
     this.gameState = "waiting"; // waiting, active, completed
 
-
     this.finalResults = new Map(); // playerId -> { score, correct, time }
-
 
     // Track each player's progress index
     this.playerProgress = new Map(players.map((p) => [p.id, 0]));
@@ -660,7 +658,7 @@ class GameRoom {
 
   submitAnswer(playerId, answer, timeSpent) {
     console.log("at line no. 601, inside submit answer");
-    console.log("gamestate:", this.gameState );
+    console.log("gamestate:", this.gameState);
 
     if (this.gameState !== "active") throw new Error("Game not active");
     console.log("at line no. 602, inside submit answer");
@@ -882,36 +880,35 @@ class GameRoom {
   }
 
   addFinalResult(playerId, result) {
-  this.finalResults.set(playerId, result);
-console.log('add final')
-// If both results received → determine winner
-if (this.finalResults.size === this.players.length) {
-  return this.determineWinner();
-}
+    this.finalResults.set(playerId, result);
+    console.log("add final", playerId, result );
+    // If both results received → determine winner
+    if (this.finalResults.size === this.players.length) {
+      return this.determineWinner();
+    }
 
-return null;
-}
+    return null;
+  }
 
-determineWinner() {
-  const results = [...this.finalResults.entries()]; // [ [playerId, {score,time}], ... ]
-  
-  console.log('determine winner')
-  results.sort((a, b) => {
-    const r1 = a[1];
-    const r2 = b[1];
+  determineWinner() {
+    const results = [...this.finalResults.entries()]; // [ [playerId, {score,time}], ... ]
 
-    if (r2.score !== r1.score) return r2.score - r1.score;  // higher score wins
-    return r1.time - r2.time;  // lower time wins
-  });
+    console.log("determine winner");
+    results.sort((a, b) => {
+      const r1 = a[1];
+      const r2 = b[1];
 
-  const winnerPlayerId = results[0][0];
+      if (r2.score !== r1.score) return r2.score - r1.score; // higher score wins
+      return r1.time - r2.time; // lower time wins
+    });
 
-  return {
-    winnerId: winnerPlayerId,
-    results: Object.fromEntries(this.finalResults),
-  };
-}
+    const winnerPlayerId = results[0][0];
 
+    return {
+      winnerId: winnerPlayerId,
+      results: Object.fromEntries(this.finalResults),
+    };
+  }
 
   getGameState() {
     return {
